@@ -3,6 +3,7 @@ package com.github.cfogrady.dim.modifier.controllers;
 import com.github.cfogrady.dim.modifier.SpriteImageTranslator;
 import com.github.cfogrady.dim.modifier.SpriteReplacer;
 import com.github.cfogrady.dim.modifier.controls.ImageIntListView;
+import com.github.cfogrady.dim.modifier.utils.NameSpriteGenerator;
 import com.github.cfogrady.dim.modifier.data.AppState;
 import com.github.cfogrady.dim.modifier.data.card.Character;
 import com.github.cfogrady.vb.dim.sprite.SpriteData;
@@ -10,10 +11,15 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
+import javafx.geometry.Side;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
+import javafx.scene.input.MouseButton;
+import com.github.cfogrady.dim.modifier.controls.NameGenerationDialog;
 import javafx.scene.control.TabPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -75,6 +81,8 @@ public class CharacterViewController implements Initializable {
     private int characterSelection = 0;
     private NameUpdater nameUpdater;
     private SubViewSelection subViewSelection = SubViewSelection.STATS;
+    private final NameSpriteGenerator nameSpriteGenerator = new NameSpriteGenerator();
+    private final ContextMenu nameBoxContextMenu = new ContextMenu();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -135,7 +143,7 @@ public class CharacterViewController implements Initializable {
         deleteCharacterButton.setOnAction(e -> {
             appState.getCardData().deleteCharacter(characterSelection);
             int numberOfRemainingCharacters = appState.getCardData().getCharacters().size();
-            if(characterSelection >= numberOfRemainingCharacters) {
+            if (characterSelection >= numberOfRemainingCharacters) {
                 characterSelection = numberOfRemainingCharacters - 1;
             }
             refreshAll();
@@ -151,22 +159,35 @@ public class CharacterViewController implements Initializable {
 
     private void initializeCharacterSelectionListView() {
         try {
-            characterSelectionListView.initialize(spriteImageTranslator.createImageValuePairs(appState.getIdleForCharacters()), 1.0, null, null);
-            characterSelectionListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-                if (newValue != null) {
-                    try {
-                        characterSelection = newValue.getValue();
-                        if(nameUpdater != null) {
-                            nameUpdater.cancel();
-                        }
-                        initializeNameBox();
-                        updateSubViews();
-                        log.debug("Character selection completed for character: {}", characterSelection);
-                    } catch (Exception e) {
-                        log.error("Error processing character selection: {}", e.getMessage(), e);
-                    }
+            characterSelectionListView.initialize(
+                    spriteImageTranslator.createImageValuePairs(appState.getIdleForCharacters()), 1.0, null, null);
+            characterSelectionListView.setOnReorder((oldIndex, newIndex) -> {
+                try {
+                    appState.getCardData().reorderCharacters(oldIndex, newIndex);
+                    characterSelection = newIndex;
+                    refreshAll();
+                } catch (Exception e) {
+                    log.error("Error reordering characters: {}", e.getMessage(), e);
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "Error reordering characters: " + e.getMessage());
+                    alert.show();
                 }
             });
+            characterSelectionListView.getSelectionModel().selectedItemProperty()
+                    .addListener((observable, oldValue, newValue) -> {
+                        if (newValue != null) {
+                            try {
+                                characterSelection = newValue.getValue();
+                                if (nameUpdater != null) {
+                                    nameUpdater.cancel();
+                                }
+                                initializeNameBox();
+                                updateSubViews();
+                                log.debug("Character selection completed for character: {}", characterSelection);
+                            } catch (Exception e) {
+                                log.error("Error processing character selection: {}", e.getMessage(), e);
+                            }
+                        }
+                    });
         } catch (Exception e) {
             log.error("Error initializing character selection list view: {}", e.getMessage(), e);
         }
@@ -180,20 +201,66 @@ public class CharacterViewController implements Initializable {
         Image image = spriteImageTranslator.loadImageFromSprite(nameSprite);
         ImageView imageView = new ImageView(image);
         imageView.setViewport(new Rectangle2D(0, 0, 80, 15));
-        if(nameSprite.getWidth() > 80) {
+        if (nameSprite.getWidth() > 80) {
             nameUpdater = new NameUpdater(nameSprite.getWidth(), imageView, -80);
             timer.scheduleAtFixedRate(nameUpdater, 0, 33);
         }
         nameBox.getChildren().clear();
         nameBox.getChildren().add(imageView);
         nameBox.setOnMouseClicked(event -> {
-            SpriteData.Sprite newNameSprite = spriteReplacer.replaceSprite(nameSprite, false, true);
-            if(newNameSprite != null) {
-                replaceNameSprite(character, newNameSprite);
+            if (event.getButton() == MouseButton.PRIMARY) {
+                if (nameBoxContextMenu.isShowing()) {
+                    nameBoxContextMenu.hide();
+                    return;
+                }
+
+                nameBoxContextMenu.getItems().clear();
+
+                MenuItem selectImageItem = new MenuItem("Select Image");
+                selectImageItem.setOnAction(e -> {
+                    SpriteData.Sprite newNameSprite = spriteReplacer.replaceSprite(nameSprite, false, true);
+                    if (newNameSprite != null) {
+                        replaceNameSprite(character, newNameSprite);
+                    }
+                });
+
+                MenuItem generateNameItem = new MenuItem("Generate Name");
+                generateNameItem.setOnAction(e -> {
+                    if (nameSpriteGenerator.getAvailableFonts().isEmpty()) {
+                        ButtonType addFontButton = new ButtonType("Add Font");
+                        Alert alert = new Alert(Alert.AlertType.ERROR,
+                                "No fonts found in resources/fonts. Please add font sprite sheets (e.g. VB_Alphabet_ENG.png) to the 'fonts' folder.",
+                                addFontButton, ButtonType.OK);
+                        alert.showAndWait().ifPresent(type -> {
+                            if (type == addFontButton) {
+                                javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+                                fileChooser.setTitle("Select Font Sprite Sheet");
+                                fileChooser.getExtensionFilters()
+                                        .add(new javafx.stage.FileChooser.ExtensionFilter("PNG Images", "*.png"));
+                                File file = fileChooser.showOpenDialog(nameBox.getScene().getWindow());
+                                if (file != null) {
+                                    nameSpriteGenerator.addFont(file);
+                                    Alert successAlert = new Alert(Alert.AlertType.INFORMATION,
+                                            "Font added successfully!");
+                                    successAlert.show();
+                                }
+                            }
+                        });
+                        return;
+                    }
+
+                    NameGenerationDialog dialog = new NameGenerationDialog(nameSpriteGenerator, spriteImageTranslator);
+                    dialog.showAndWait().ifPresent(generatedSprite -> {
+                        replaceNameSprite(character, generatedSprite);
+                    });
+                });
+
+                nameBoxContextMenu.getItems().addAll(selectImageItem, generateNameItem);
+                nameBoxContextMenu.show(nameBox, Side.BOTTOM, 0, 0);
             }
         });
-        nameBox.setOnDragDropped( e-> {
-            if(e.getDragboard().hasFiles()) {
+        nameBox.setOnDragDropped(e -> {
+            if (e.getDragboard().hasFiles()) {
                 List<File> files = e.getDragboard().getFiles();
                 File file = files.get(0);
                 SpriteData.Sprite newSprite = spriteReplacer.loadSpriteFromFile(file);
@@ -205,7 +272,7 @@ public class CharacterViewController implements Initializable {
                 e.acceptTransferModes(TransferMode.ANY);
                 log.info("Drag Over Image");
                 e.consume();
-            } else if(e.getDragboard().hasFiles()) {
+            } else if (e.getDragboard().hasFiles()) {
                 if (e.getDragboard().getFiles().size() > 1) {
                     log.info("Can only load 1 file at a time");
                 } else {
@@ -218,7 +285,7 @@ public class CharacterViewController implements Initializable {
 
     private void replaceNameSprite(Character<?, ?> character, SpriteData.Sprite nameSprite) {
         SpriteData.SpriteDimensions newSpriteDimensions = nameSprite.getSpriteDimensions();
-        if(newSpriteDimensions.getHeight() == 15 && newSpriteDimensions.getWidth()%80 == 0) {
+        if (newSpriteDimensions.getHeight() == 15 && newSpriteDimensions.getWidth() % 80 == 0) {
             character.getSprites().set(0, nameSprite);
             initializeNameBox();
         } else {
@@ -229,7 +296,8 @@ public class CharacterViewController implements Initializable {
     }
 
     private void updateNewDeleteButtons() {
-        newCharacterButton.setDisable(appState.getCardData().getCharacters().size() >= appState.getCardData().getNumberOfAvailableCharacterSlots());
+        newCharacterButton.setDisable(appState.getCardData().getCharacters().size() >= appState.getCardData()
+                .getNumberOfAvailableCharacterSlots());
         deleteCharacterButton.setDisable(appState.getCardData().getCharacters().size() == 1);
     }
 
@@ -239,13 +307,13 @@ public class CharacterViewController implements Initializable {
                 case STATS -> tabPane.getSelectionModel().select(statsTab);
                 case TRANSFORMATIONS -> tabPane.getSelectionModel().select(transformationsTab);
             }
-            
+
             statsSubViewPane.getChildren().clear();
             transformationsSubViewPane.getChildren().clear();
-            
+
             statsSubViewPane.getChildren().add(statsSubView);
             transformationsSubViewPane.getChildren().add(transformationsSubView);
-            
+
             switch (subViewSelection) {
                 case STATS -> {
                     statsViewController.setCharacter(appState.getCharacter(characterSelection));
@@ -267,13 +335,14 @@ public class CharacterViewController implements Initializable {
         private final int spriteWidth;
         private final ImageView imageView;
         private int offsetX;
+
         @Override
         public void run() {
             // hack to make it pause at the start and end.
-            if(offsetX > spriteWidth) {
+            if (offsetX > spriteWidth) {
                 offsetX = -80;
                 imageView.setViewport(new Rectangle2D(0, 0, 80, 15));
-            } else if(offsetX < 0) {
+            } else if (offsetX < 0) {
                 imageView.setViewport(new Rectangle2D(0, 0, 80, 15));
             } else {
                 imageView.setViewport(new Rectangle2D(offsetX % spriteWidth, 0, 80, 15));

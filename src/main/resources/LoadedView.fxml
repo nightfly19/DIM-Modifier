@@ -25,6 +25,7 @@
             <Menu text="File">
                <items>
                   <MenuItem fx:id="openMenuItem" text="Open"/>
+                  <Menu fx:id="openRecentMenu" text="Open Recent"/>
                   <MenuItem fx:id="saveMenuItem" text="Save"/>
                   <MenuItem fx:id="saveAsMenuItem" text="Save As"/>
                   <Menu text="Export">
@@ -34,8 +35,21 @@
                         <MenuItem fx:id="exportDataMenuItem" text="Export Data"/>
                      </items>
                   </Menu>
+                  <Menu text="Import">
+                     <items>
+                        <MenuItem fx:id="importAllMenuItem" text="Import All"/>
+                        <MenuItem fx:id="importSpritesMenuItem" text="Import Sprites"/>
+                        <MenuItem fx:id="importDataMenuItem" text="Import Data"/>
+                     </items>
+                  </Menu>
                </items>
             </Menu>
+<!--            <Menu text="Edit">-->
+<!--               <items>-->
+<!--                  <MenuItem fx:id="undoMenuItem" text="Undo"/>-->
+<!--                  <MenuItem fx:id="redoMenuItem" text="Redo"/>-->
+<!--               </items>-->
+<!--            </Menu>-->
          </menus>
       </MenuBar>
       

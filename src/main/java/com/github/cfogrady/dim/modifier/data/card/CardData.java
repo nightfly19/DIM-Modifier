@@ -22,29 +22,44 @@ public abstract class CardData<T1 extends Character<?, T1>, T2 extends Adventure
     private List<T2> adventures;
     private CardSprites cardSprites;
 
+    public void reorderCharacters(int oldIndex, int newIndex) {
+        if (oldIndex < 0 || oldIndex >= characters.size() || newIndex < 0 || newIndex >= characters.size()) {
+            throw new IllegalArgumentException("Invalid indices for reordering");
+        }
+
+        T1 character = characters.remove(oldIndex);
+        characters.add(newIndex, character);
+
+        // Rebuild UUID to slot map
+        uuidToCharacterSlot.clear();
+        for (int i = 0; i < characters.size(); i++) {
+            uuidToCharacterSlot.put(characters.get(i).getId(), i);
+        }
+    }
+
     public void addCharacter(int characterIndex, SpriteImageTranslator spriteImageTranslator) {
         T1 newCharacter = characters.get(characterIndex).copyCharacter(spriteImageTranslator);
-        getCharacters().add(characterIndex+1, newCharacter);
+        getCharacters().add(characterIndex + 1, newCharacter);
         resetUUIDToIndexesFrom(characterIndex);
     }
 
     public void deleteCharacter(int characterIndex) {
         Character<?, ?> removedCharacter = characters.remove(characterIndex);
         uuidToCharacterSlot.remove(removedCharacter.getId());
-        for(int i = characterIndex; i < characters.size(); i++) {
+        for (int i = characterIndex; i < characters.size(); i++) {
             Character<?, ?> character = characters.get(i);
             uuidToCharacterSlot.put(character.getId(), i);
         }
     }
 
-    public static Integer[] PHASES = {1, 2, 3, 4, 5, 6, 7, 8};
+    public static Integer[] PHASES = { 1, 2, 3, 4, 5, 6, 7, 8 };
 
     public Integer[] getTotalAvailableStages() {
         return PHASES;
     }
 
     protected void resetUUIDToIndexesFrom(int index) {
-        for(int i = index; i < characters.size(); i++) {
+        for (int i = index; i < characters.size(); i++) {
             uuidToCharacterSlot.put(characters.get(i).getId(), i);
         }
     }
@@ -53,14 +68,15 @@ public abstract class CardData<T1 extends Character<?, T1>, T2 extends Adventure
 
     public abstract int getNumberOfAvailableCharacterSlots();
 
-    public static <T extends Character<?, T>> int getBattleChanceTotal(List<T> characters, Function<T, Integer> getter) {
+    public static <T extends Character<?, T>> int getBattleChanceTotal(List<T> characters,
+            Function<T, Integer> getter) {
         int total = 0;
-        for(T character : characters){
-            if(character.getStage() < 2) {
+        for (T character : characters) {
+            if (character.getStage() < 2) {
                 continue;
             }
             Integer value = getter.apply(character);
-            if(value != null) {
+            if (value != null) {
                 total += value;
             }
         }
@@ -70,10 +86,10 @@ public abstract class CardData<T1 extends Character<?, T1>, T2 extends Adventure
     protected List<String> validateAllTransformationsExist() {
         List<String> errors = new ArrayList<>();
         int i = 0;
-        for(T1 character : getCharacters()) {
-            for(TransformationEntry transformationEntry : character.getTransformationEntries()) {
+        for (T1 character : getCharacters()) {
+            for (TransformationEntry transformationEntry : character.getTransformationEntries()) {
                 UUID uuid = transformationEntry.getToCharacter();
-                if(uuid == null || getUuidToCharacterSlot().get(uuid) == null) {
+                if (uuid == null || getUuidToCharacterSlot().get(uuid) == null) {
                     errors.add("Character " + i + " has transformation without transformation result character.");
                 }
             }
@@ -84,10 +100,10 @@ public abstract class CardData<T1 extends Character<?, T1>, T2 extends Adventure
 
     protected List<String> validateAllAdventureCharactersExist() {
         List<String> errors = new ArrayList<>();
-        for(int adventureIdx = 0; adventureIdx < getAdventures().size(); adventureIdx++) {
+        for (int adventureIdx = 0; adventureIdx < getAdventures().size(); adventureIdx++) {
             T2 adventure = getAdventures().get(adventureIdx);
             UUID uuid = adventure.getBossId();
-            if(uuid == null || getUuidToCharacterSlot().get(uuid) == null) {
+            if (uuid == null || getUuidToCharacterSlot().get(uuid) == null) {
                 errors.add("Adventure " + adventureIdx + " has missing boss character.");
             }
         }
@@ -96,19 +112,19 @@ public abstract class CardData<T1 extends Character<?, T1>, T2 extends Adventure
 
     protected List<String> validateSpecificFusionExist() {
         List<String> errors = new ArrayList<>();
-        for(int characterIdx = 0; characterIdx < getCharacters().size(); characterIdx++) {
+        for (int characterIdx = 0; characterIdx < getCharacters().size(); characterIdx++) {
             T1 character = getCharacters().get(characterIdx);
-            for(SpecificFusion specificFusion : character.getSpecificFusions()) {
+            for (SpecificFusion specificFusion : character.getSpecificFusions()) {
                 UUID uuid = specificFusion.getEvolveToCharacterId();
-                if(uuid == null || getUuidToCharacterSlot().get(uuid) == null) {
+                if (uuid == null || getUuidToCharacterSlot().get(uuid) == null) {
                     errors.add("Character " + characterIdx + " has specific fusion to missing character.");
                 }
-                if(specificFusion.getPartnerDimId() == getMetaData().getId()) {
+                if (specificFusion.getPartnerDimId() == getMetaData().getId()) {
                     uuid = specificFusion.getSameBemPartnerCharacter();
-                    if(uuid == null || getUuidToCharacterSlot().get(uuid) == null) {
+                    if (uuid == null || getUuidToCharacterSlot().get(uuid) == null) {
                         errors.add("Character " + characterIdx + " has specific fusion with missing character.");
                     }
-                } else if(specificFusion.getPartnerDimSlotId() == null) {
+                } else if (specificFusion.getPartnerDimSlotId() == null) {
                     errors.add("Character " + characterIdx + " has specific fusion with missing character.");
                 }
             }

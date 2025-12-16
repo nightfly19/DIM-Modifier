@@ -8,7 +8,8 @@
     -fx-dark-text-color: #e0e0e0;
     -fx-mid-text-color: #c0c0c0;
     -fx-light-text-color: #909090;
-    -fx-accent: #404040; /* Digimon orange accent */
+    -fx-accent: #404040;
+    /* Digimon orange accent */
     -fx-focus-color: #909090;
     -fx-faint-focus-color: #40404022;
     -fx-default-button: #404040;
@@ -21,20 +22,20 @@
     .character-header {
         -fx-spacing: 8px;
     }
-    
+
     .button-group {
         -fx-spacing: 4px;
     }
-    
+
     .button {
         -fx-padding: 6px 10px;
         -fx-font-size: 11px;
     }
-    
+
     .info-header {
         -fx-spacing: 8px;
     }
-    
+
     .info-header Text {
         -fx-font-size: 12px;
     }
@@ -44,21 +45,21 @@
     .character-header {
         -fx-spacing: 4px;
     }
-    
+
     .button-group {
         -fx-spacing: 2px;
     }
-    
+
     .button {
         -fx-min-width: 80px;
         -fx-padding: 4px 8px;
         -fx-font-size: 10px;
     }
-    
+
     .info-header {
         -fx-spacing: 4px;
     }
-    
+
     .info-header Text {
         -fx-font-size: 11px;
     }
@@ -101,7 +102,7 @@
 /* TabPane styling */
 
 
-.tab-pane > .tab-header-area {
+.tab-pane>.tab-header-area {
     -fx-padding: 5px 5px 0px 5px;
 }
 
@@ -120,7 +121,7 @@
     -fx-min-width: 100px;
 }
 
-.tab-pane > .tab-header-area > .headers-region > .tab {
+.tab-pane>.tab-header-area>.headers-region>.tab {
     -fx-padding: 8px 15px;
     -fx-margin: 0 5px 0 0;
 }
@@ -148,7 +149,7 @@
     -fx-padding: 8px;
 }
 
-.tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
+.tab-pane:focused>.tab-header-area>.headers-region>.tab:selected .focus-indicator {
     -fx-border-color: transparent;
 }
 
@@ -217,7 +218,7 @@
 }
 
 /* Garantir que a parte vazia da lista também tenha fundo escuro */
-.list-view > .placeholder {
+.list-view>.placeholder {
     -fx-background-color: #303030;
 }
 
@@ -252,7 +253,8 @@
     -fx-padding: 4px 10px;
 }
 
-.menu:hover, .menu:showing {
+.menu:hover,
+.menu:showing {
     -fx-background-color: #3D3D3D;
 }
 
@@ -261,7 +263,8 @@
     -fx-padding: 8px 12px;
 }
 
-.menu-item:hover, .menu-item:focused {
+.menu-item:hover,
+.menu-item:focused {
     -fx-background-color: #5f5f5f;
 }
 
@@ -269,7 +272,8 @@
     -fx-text-fill: #e0e0e0;
 }
 
-.menu-item:hover .label, .menu-item:focused .label {
+.menu-item:hover .label,
+.menu-item:focused .label {
     -fx-text-fill: white;
 }
 
@@ -297,12 +301,14 @@
     -fx-background-color: #5D5D5D;
 }
 
-.scroll-bar .increment-button, .scroll-bar .decrement-button {
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
     -fx-background-color: transparent;
     -fx-padding: 0 7px;
 }
 
-.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow {
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
     -fx-background-color: #e0e0e0;
 }
 
@@ -321,7 +327,8 @@
 }
 
 /* HBox and VBox */
-.h-box, .v-box {
+.h-box,
+.v-box {
     -fx-background-color: transparent;
     -fx-spacing: 8px;
 }
@@ -337,16 +344,19 @@
 }
 
 /* Specific button styling */
-#newCharacterButton, #exportCharacterSpritesButton {
+#newCharacterButton,
+#exportCharacterSpritesButton {
     -fx-background-color: #404040;
     -fx-text-fill: white;
 }
 
-#newCharacterButton:hover, #exportCharacterSpritesButton:hover {
+#newCharacterButton:hover,
+#exportCharacterSpritesButton:hover {
     -fx-background-color: #FF8533;
 }
 
-#newCharacterButton:pressed, #exportCharacterSpritesButton:pressed {
+#newCharacterButton:pressed,
+#exportCharacterSpritesButton:pressed {
     -fx-background-color: #CC5500;
 }
 
@@ -364,7 +374,8 @@
 }
 
 /* Text fields and input areas */
-.text-field, .text-area {
+.text-field,
+.text-area {
     -fx-background-color: #1a1a1a;
     -fx-background-radius: 4px;
     -fx-border-color: #505050;
@@ -377,7 +388,8 @@
     -fx-padding: 8px;
 }
 
-.text-field:focused, .text-area:focused {
+.text-field:focused,
+.text-area:focused {
     -fx-border-color: -fx-accent;
 }
 
@@ -441,7 +453,7 @@
     -fx-padding: 5px;
 }
 
-.character-tabs  {
+.character-tabs {
     -fx-padding: 10px;
     -fx-background-color: #262626;
     -fx-background-radius: 0 0 4px 4px;
@@ -544,13 +556,15 @@
     -fx-padding: 15px;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 2, 0, 0, 1);
 }
-.content-container{
+
+.content-container {
     -fx-background-color: #1a1a1a;
     -fx-padding: 5px;
     -fx-border-insets: 5px;
     -fx-background-insets: 5px;
     -fx-spacing: 10px;
 }
+
 /* Transições */
 .animated {
     -fx-transition: all 0.3s ease;
@@ -559,7 +573,8 @@
 /* Corrigindo os textos em preto na interface */
 
 /* Títulos de campos na tela de stats (ex: "Stage:", "Activity Type:", etc.) */
-.text, .label {
+.text,
+.label {
     -fx-fill: #e0e0e0;
     -fx-text-fill: #e0e0e0;
 }
@@ -570,20 +585,25 @@ Text {
 }
 
 /* Valores específicos para os campos de estatísticas na tela de personagem */
-.stats-value, .label.stats-value {
+.stats-value,
+.label.stats-value {
     -fx-fill: #e0e0e0;
     -fx-text-fill: #e0e0e0;
 }
 
 /* Valores em campos numéricos e dropdowns */
-.choice-box, .combo-box, .spinner {
+.choice-box,
+.combo-box,
+.spinner {
     -fx-text-fill: #e0e0e0;
     -fx-background-color: #3D3D3D;
     -fx-border-color: #505050;
     -fx-border-radius: 4px;
 }
 
-.choice-box .label, .combo-box .label, .spinner .text-field {
+.choice-box .label,
+.combo-box .label,
+.spinner .text-field {
     -fx-text-fill: #e0e0e0;
 }
 
@@ -593,7 +613,9 @@ Text {
 }
 
 /* Tela de stats específica */
-#statsTab .text, #statsTab Text, #statsTab .label {
+#statsTab .text,
+#statsTab Text,
+#statsTab .label {
     -fx-fill: #e0e0e0;
     -fx-text-fill: #e0e0e0;
 }
@@ -605,18 +627,23 @@ Text {
 }
 
 /* Overrides específicos para garantir que todos os textos sejam visíveis */
-.anchor-pane Text, .stack-pane Text, .v-box Text, .h-box Text {
+.anchor-pane Text,
+.stack-pane Text,
+.v-box Text,
+.h-box Text {
     -fx-fill: #e0e0e0;
 }
 
 /* Textos nos campos de atributos e valores */
-.attribute-label, .value-label {
+.attribute-label,
+.value-label {
     -fx-fill: #e0e0e0;
     -fx-text-fill: #e0e0e0;
 }
 
 /* Textos em todos os painéis de conteúdo */
-.content-panel Text, .content-container Text {
+.content-panel Text,
+.content-container Text {
     -fx-fill: #e0e0e0;
 }
 
@@ -625,7 +652,7 @@ Text {
     .title {
         -fx-font-size: 13px;
     }
-    
+
     .text {
         -fx-font-size: 12px;
     }
@@ -635,7 +662,7 @@ Text {
     .title {
         -fx-font-size: 12px;
     }
-    
+
     .text {
         -fx-font-size: 11px;
     }
@@ -658,7 +685,7 @@ Text {
     -fx-background-insets: 5px;
 }
 
-.titled-pane > .title {
+.titled-pane>.title {
     -fx-background-color: #2D2D2D;
     -fx-background-radius: 4px;
     -fx-padding: 8px 12px;
@@ -666,17 +693,17 @@ Text {
     -fx-border-radius: 4px;
 }
 
-.titled-pane > .title > .text {
+.titled-pane>.title>.text {
     -fx-fill: #e0e0e0;
     -fx-font-weight: bold;
     -fx-font-size: 13px;
 }
 
-.titled-pane > .title:hover {
+.titled-pane>.title:hover {
     -fx-background-color: #3D3D3D;
 }
 
-.titled-pane > .content {
+.titled-pane>.content {
     -fx-background-color: #262626;
     -fx-background-radius: 4px;
     -fx-border-color: #404040;
@@ -684,11 +711,11 @@ Text {
     -fx-padding: 10px;
 }
 
-.titled-pane:expanded > .title {
+.titled-pane:expanded>.title {
     -fx-background-color: #404040;
 }
 
-.titled-pane:expanded > .title > .text {
+.titled-pane:expanded>.title>.text {
     -fx-fill: #FFFFFF;
 }
 
@@ -767,4 +794,22 @@ Text {
 
 .combo-box .arrow {
     -fx-background-color: #e0e0e0;
-} 
+}
+
+/* Fix for white artifacts in layout */
+.image-int-cell-grid {
+    -fx-background-color: transparent;
+}
+
+/* Ensure ListCells always have dark background on hover/selection */
+.list-cell:filled:hover,
+.list-cell:filled:selected,
+.list-cell:filled:selected:hover {
+    -fx-background-color: #3D3D3D;
+    -fx-text-fill: #e0e0e0;
+}
+
+.list-cell:odd:filled:hover,
+.list-cell:even:filled:hover {
+    -fx-background-color: #3D3D3D;
+}

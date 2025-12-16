@@ -8,6 +8,6 @@ import lombok.experimental.SuperBuilder;
 @Data
 @SuperBuilder
 @EqualsAndHashCode(callSuper = true)
-public class DimTransformationEntity  extends TransformationEntry {
+public class DimTransformationEntity extends TransformationEntry {
     private Integer hoursUntilTransformation;
 }

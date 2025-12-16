@@ -16,15 +16,8 @@ import java.util.List;
 import java.util.UUID;
 
 @Slf4j
-public class DimCardDataReader extends CardDataRreader<
-        DimEvolutionRequirements.DimEvolutionRequirementBlock,
-        AdventureLevels.AdventureLevel,
-        SpecificFusions.SpecificFusionEntry,
-        DimCard,
-        DimTransformationEntity,
-        DimCharacter,
-        Adventure,
-        DimCardData> {
+public class DimCardDataReader extends
+        CardDataRreader<DimEvolutionRequirements.DimEvolutionRequirementBlock, AdventureLevels.AdventureLevel, SpecificFusions.SpecificFusionEntry, DimCard, DimTransformationEntity, DimCharacter, Adventure, DimCardData> {
 
     private static final int BABY_I_SPRITE_COUNT = 6;
     private static final int BABY_II_SPRITE_COUNT = 7;
@@ -41,10 +34,12 @@ public class DimCardDataReader extends CardDataRreader<
 
     private Integer getHoursUntilTransformation(int index, DimCard dimCard) {
         Integer hours = null;
-        for(DimEvolutionRequirements.DimEvolutionRequirementBlock entry : dimCard.getTransformationRequirements().getTransformationEntries()) {
-            if(entry.getFromCharacterIndex() == index && entry.getToCharacterIndex() == NONE_VALUE) {
-                if(hours != null) {
-                    log.error("DIM encountered with different fusion evolution timers from a single digimon. Please log an issue with the BEM on https://github.com/cfogrady/DIM-Modifier/issues");
+        for (DimEvolutionRequirements.DimEvolutionRequirementBlock entry : dimCard.getTransformationRequirements()
+                .getTransformationEntries()) {
+            if (entry.getFromCharacterIndex() == index && entry.getToCharacterIndex() == NONE_VALUE) {
+                if (hours != null) {
+                    log.error(
+                            "DIM encountered with different fusion evolution timers from a single digimon. Please log an issue with the BEM on https://github.com/cfogrady/DIM-Modifier/issues");
                 }
                 int rawHours = entry.getHoursUntilEvolution();
                 hours = (rawHours == NONE_VALUE) ? null : rawHours;
@@ -59,12 +54,14 @@ public class DimCardDataReader extends CardDataRreader<
     }
 
     @Override
-    protected DimTransformationEntity.DimTransformationEntityBuilder<?, ?> getTransformationBuilder(DimEvolutionRequirements.DimEvolutionRequirementBlock rawEntry) {
+    protected DimTransformationEntity.DimTransformationEntityBuilder<?, ?> getTransformationBuilder(
+            DimEvolutionRequirements.DimEvolutionRequirementBlock rawEntry) {
         return DimTransformationEntity.builder().hoursUntilTransformation(rawEntry.getHoursUntilEvolution());
     }
 
     @Override
-    protected Adventure.AdventureBuilder<?, ?> getAdventureBuilder(DimCard card, AdventureLevels.AdventureLevel adventureLevel, List<UUID> idBySlot) {
+    protected Adventure.AdventureBuilder<?, ?> getAdventureBuilder(DimCard card,
+            AdventureLevels.AdventureLevel adventureLevel, List<UUID> idBySlot) {
         return Adventure.builder();
     }
 
@@ -86,18 +83,35 @@ public class DimCardDataReader extends CardDataRreader<
     @Override
     protected List<SpriteData.Sprite> getSpritesForSlot(int index, DimCard card) {
         int startingSprite = 10;
-        for(int i = 0; i < index; i++) {
+        for (int i = 0; i < index; i++) {
             int stage = card.getCharacterStats().getCharacterEntries().get(i).getStage();
             startingSprite += numberOfSpritesForStage(stage);
         }
         int stage = card.getCharacterStats().getCharacterEntries().get(index).getStage();
-        return card.getSpriteData().getSprites().subList(startingSprite, startingSprite + numberOfSpritesForStage(stage));
+        List<SpriteData.Sprite> originalSprites = card.getSpriteData().getSprites().subList(startingSprite,
+                startingSprite + numberOfSpritesForStage(stage));
+        List<SpriteData.Sprite> validatedSprites = new ArrayList<>();
+        for (SpriteData.Sprite sprite : originalSprites) {
+            if (sprite.getWidth() <= 0 || sprite.getHeight() <= 0 || sprite.getWidth() > 640
+                    || sprite.getHeight() > 480) {
+                log.warn("Invalid sprite dimensions detected in slot {}: {}x{}. Replacing with dummy.", index,
+                        sprite.getWidth(), sprite.getHeight());
+                validatedSprites.add(SpriteData.Sprite.builder()
+                        .width(1)
+                        .height(1)
+                        .pixelData(new byte[2]) // 1x1 black/transparent pixel
+                        .build());
+            } else {
+                validatedSprites.add(sprite);
+            }
+        }
+        return validatedSprites;
     }
 
     public static int numberOfSpritesForStage(int stage) {
-        if(stage == 0) {
+        if (stage == 0) {
             return BABY_I_SPRITE_COUNT;
-        } else if(stage == 1) {
+        } else if (stage == 1) {
             return BABY_II_SPRITE_COUNT;
         } else {
             return NORMAL_SPRITE_COUNT;

@@ -12,8 +12,10 @@ module DIM.Modifier.main {
     requires com.fasterxml.jackson.core;
     requires com.fasterxml.jackson.annotation;
     requires com.fasterxml.jackson.datatype.jsr310;
+
     exports com.github.cfogrady.dim.modifier to javafx.graphics;
     exports com.github.cfogrady.dim.modifier.controls to javafx.fxml;
+
     opens com.github.cfogrady.dim.modifier to javafx.fxml;
     opens com.github.cfogrady.dim.modifier.controls to javafx.fxml;
     opens com.github.cfogrady.dim.modifier.controllers to javafx.fxml;

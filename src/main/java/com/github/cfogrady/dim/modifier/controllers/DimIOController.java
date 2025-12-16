@@ -31,7 +31,7 @@ public class DimIOController {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select DIM File");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("DIM Files", "*.bin"));
-        
+
         // Definir o diretório inicial se disponível
         if (appState.getLastOpenedFilePath() != null) {
             File parentDir = appState.getLastOpenedFilePath().getParentFile();
@@ -39,14 +39,14 @@ public class DimIOController {
                 fileChooser.setInitialDirectory(parentDir);
             }
         }
-        
+
         File file = fileChooser.showOpenDialog(stage);
-        if(file != null) {
-            try(InputStream fileInputStream = new FileInputStream(file)) {
+        if (file != null) {
+            try (InputStream fileInputStream = new FileInputStream(file)) {
                 CardData<?, ?, ?> cardData = cardDataIO.readFromStream(fileInputStream);
                 appState.setCardData(cardData);
                 appState.setLastOpenedFilePath(file);
-                if(onCompletion != null) {
+                if (onCompletion != null) {
                     onCompletion.run();
                 }
             } catch (FileNotFoundException e) {
@@ -56,7 +56,28 @@ public class DimIOController {
             }
         }
     }
-    
+
+    public void openDim(File file, Runnable onCompletion) {
+        if (file != null) {
+            try (InputStream fileInputStream = new FileInputStream(file)) {
+                CardData<?, ?, ?> cardData = cardDataIO.readFromStream(fileInputStream);
+                appState.setCardData(cardData);
+                appState.setLastOpenedFilePath(file);
+                if (onCompletion != null) {
+                    onCompletion.run();
+                }
+            } catch (FileNotFoundException e) {
+                log.error("Couldn't find selected file.", e);
+                Alert alert = new Alert(Alert.AlertType.ERROR, "File not found: " + file.getAbsolutePath());
+                alert.show();
+            } catch (IOException e) {
+                log.error("Error reading file", e);
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Error reading file: " + e.getMessage());
+                alert.show();
+            }
+        }
+    }
+
     public void openFile(File file) {
         try {
             CardData<?, ?, ?> cardData = cardDataIO.readFromFile(file);
@@ -73,15 +94,16 @@ public class DimIOController {
 
     public void saveDim() {
         List<String> errors = appState.getCardData().checkForErrors();
-        if(!errors.isEmpty()) {
-            Alert alert = new Alert(Alert.AlertType.NONE, "Cannot save. Errors in card data:" + ERROR_SEPARATOR + String.join(ERROR_SEPARATOR, errors));
+        if (!errors.isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.NONE,
+                    "Cannot save. Errors in card data:" + ERROR_SEPARATOR + String.join(ERROR_SEPARATOR, errors));
             alert.getButtonTypes().add(ButtonType.OK);
             alert.show();
             return;
         }
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save DIM File As...");
-        
+
         // Definir o diretório inicial se disponível
         if (appState.getLastOpenedFilePath() != null) {
             File parentDir = appState.getLastOpenedFilePath().getParentFile();
@@ -90,9 +112,9 @@ public class DimIOController {
             }
             fileChooser.setInitialFileName(appState.getLastOpenedFilePath().getName());
         }
-        
+
         File file = fileChooser.showSaveDialog(stage);
-        if(file != null) {
+        if (file != null) {
             saveDimToFile(file);
             appState.setLastOpenedFilePath(file);
         }
@@ -100,8 +122,9 @@ public class DimIOController {
 
     public void saveDimToFile(File file) {
         List<String> errors = appState.getCardData().checkForErrors();
-        if(!errors.isEmpty()) {
-            Alert alert = new Alert(Alert.AlertType.NONE, "Cannot save. Errors in card data:" + ERROR_SEPARATOR + String.join(ERROR_SEPARATOR, errors));
+        if (!errors.isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.NONE,
+                    "Cannot save. Errors in card data:" + ERROR_SEPARATOR + String.join(ERROR_SEPARATOR, errors));
             alert.getButtonTypes().add(ButtonType.OK);
             alert.show();
             return;

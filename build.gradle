@@ -12,28 +12,58 @@ repositories {
     mavenCentral()
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+    modularity.inferModulePath = true // ✅ Isso ativa o module-path para o compilador Java
+}
+
 javafx {
     version = "17"
     modules = [ 'javafx.controls', 'javafx.fxml', 'javafx.swing' ]
 }
 
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (project.hasProperty('targetPlatform') && project.targetPlatform == 'windows') {
+            if (details.requested.group == 'org.openjfx') {
+                details.artifactSelection {
+                    it.selectArtifact("jar", "jar", "win")
+                }
+                 // Force the dependency to use the win classifier. 
+                 // Note: changing the target specifically to include the classifier string in the notation 
+                 // might be tricky because 'useTarget' expects group:name:version. 
+                 // So we rely on the artifact classifier. 
+                 // Actually, simpler:
+            }
+        }
+    }
+}
+
 dependencies {
-    //lombok
+    // Lombok
     compileOnly 'org.projectlombok:lombok:1.18.22'
     annotationProcessor 'org.projectlombok:lombok:1.18.22'
     testCompileOnly 'org.projectlombok:lombok:1.18.22'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
 
+    // Bibliotecas do projeto
     implementation 'com.github.cfogrady:vb-dim-reader:+'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 
+    // SLF4J
     implementation 'org.slf4j:slf4j-api:1.7.32'
     implementation 'org.slf4j:slf4j-simple:1.7.32'
-    
-    // Jackson para manipulação de JSON
+
+    // Jackson (completo para suportar modules)
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.13.0'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.13.0'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.0'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.0'
+
+    // JUnit
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 }
 
 application {
@@ -41,39 +71,105 @@ application {
     mainModule.set("DIM.Modifier.main")
 }
 
-compileJava {
-    sourceCompatibility = '17'
-    targetCompatibility = '17'
+jlink {
+    // javaHome = 'build/tmp_jdk/jdk-17.0.2'
+    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
+    launcher {
+        name = 'DIM-Modifier'
+    }
+    targetPlatform('windows-x64') {
+        jdkHome = jdkDownload('https://download.java.net/java/GA/jdk17.0.2/dfd4a8d0985749f896bed50d7138ee7f/8/GPL/openjdk-17.0.2_windows-x64_bin.zip')
+    }
 }
 
 abstract class WindowsBuildImageTask extends DefaultTask {
     @TaskAction
     def buildImage() {
         def isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
-        def warpExecutable = isWindows ? "warp-packer.exe" : "wine warp-packer.exe"
+        def warpExecutable = isWindows ? "warp-packer.exe" : "./warp-packer"
         def version = getProject().getVersion().toString()
-        def warpFile = new File('warp-packer.exe')
-
-        if (!warpFile.exists()) {
-            new URL('https://github.com/dgiagio/warp/releases/download/v0.3.0/windows-x64.warp-packer.exe')
-                .withInputStream{ i -> warpFile.withOutputStream{ it << i } }
+        
+        if (isWindows) {
+            def warpFile = project.file('warp-packer.exe')
+            if (!warpFile.exists()) {
+                new URL('https://github.com/dgiagio/warp/releases/download/v0.3.0/windows-x64.warp-packer.exe')
+                    .withInputStream { i -> warpFile.withOutputStream { it << i } }
+            }
+        } else {
+            def warpFile = project.file('warp-packer')
+            if (!warpFile.exists()) {
+                new URL('https://github.com/dgiagio/warp/releases/download/v0.3.0/linux-x64.warp-packer')
+                    .withInputStream { i -> warpFile.withOutputStream { it << i } }
+                warpFile.setExecutable(true)
+            }
         }
 
-        def command = "${warpExecutable} --arch windows-x64 --input_dir build\\image --exec bin\\DIM-Modifier.bat --output DIM-Modifier-" + version + ".exe"
-        def proc = command.execute()
-        proc.waitForProcessOutput(System.out, System.err)
+        // Explicitly check input directory
+        def inputDirFile = project.file("build/image/DIM-Modifier-windows-x64")
+        if (!inputDirFile.exists()) {
+             // Fallback logic
+             inputDirFile = project.file("build/image/jlink-windows-x64")
+             if (!inputDirFile.exists()) {
+                 inputDirFile = project.file("build/image")
+             }
+        }
+        def inputDir = inputDirFile.getAbsolutePath()
+        println "Input Dir: ${inputDir}"
 
-        // Tenta usar Resource Hacker apenas se estiver no Windows
+        // Workaround for warp-packer/git ignoring 'bin' directory
+        // We copy 'bin' to 'dist_bin' which shouldn't be ignored
+        def binDir = new File(inputDirFile, "bin")
+        def distBinDir = new File(inputDirFile, "dist_bin")
+        
+        if (binDir.exists()) {
+            println "Renaming bin to dist_bin for packing..."
+            // We use copy+delete or rename. Rename is safer/faster.
+            if (distBinDir.exists()) distBinDir.deleteDir()
+            // Copying instead of renaming to preserve original build artifact structure if needed for debugging
+            project.copy {
+                from binDir
+                into distBinDir
+            }
+            // We don't delete binDir because jlink task might expect it, and warp-packer just ignores it.
+        }
+
+        // Create wrapper script to avoid path separator issues in cross-compilation
+        // IMPORTANT: Use CRLF for batch files, otherwise they might fail obscurely on some systems
+        def runScript = new File(inputDirFile, "run.bat")
+        // Logic: Rename dist_bin back to bin if needed, then run
+        runScript.setText('@echo off\r\ncd /d "%~dp0"\r\nif exist dist_bin (\r\n  if not exist bin (\r\n    echo Restoring bin directory...\r\n    ren dist_bin bin\r\n  )\r\n)\r\nbin\\DIM-Modifier.bat %*', 'UTF-8')
+        
+        def execPath = "run.bat"
+
+        def outputFile = new File(project.buildDir, "libs/DIM-Modifier-" + version + ".exe")
+        outputFile.getParentFile().mkdirs()
+        // Use relative path for output to avoid potential space issues if warp-packer handles absolute paths poorly
+        // But we are setting CWD to projectDir, so 'build/libs/...' is valid.
+        // Actually, let's keep absolute path but ensure CWD is set.
+        
+        def command = [warpExecutable, "--arch", "windows-x64", "--input_dir", inputDir, "--exec", execPath, "--output", outputFile.getAbsolutePath()]
+        println "Executing Command: ${command}"
+        
+        def proc = command.execute(null, project.file('.'))
+        proc.waitForProcessOutput(System.out, System.err)
+        
+        if (proc.exitValue() != 0) {
+            throw new GradleException("warp-packer failed with exit code: " + proc.exitValue())
+        }
+
         if (isWindows) {
             def iconCommand = "\"C:\\Program Files (x86)\\Resource Hacker\\ResourceHacker.exe\"  -open DIM-Modifier-" + version + ".exe -save DIM-Modifier-" + version + ".exe -action addskip -res icon.ico -mask ICONGROUP,MAINICON"
-            proc = iconCommand.execute()
-            proc.waitForProcessOutput(System.out, System.err)
+            try {
+                proc = iconCommand.execute()
+                proc.waitForProcessOutput(System.out, System.err)
+            } catch (Exception e) {
+                println "⚠️ Could not run Resource Hacker: " + e.getMessage()
+            }
         } else {
-            println "⚠️ Ícone não adicionado: Resource Hacker só funciona no Windows."
+             println "⚠️ Skipping icon addition on Linux."
         }
     }
 }
-
 
 abstract class LinuxBuildImageTask extends DefaultTask {
     @TaskAction
@@ -81,7 +177,7 @@ abstract class LinuxBuildImageTask extends DefaultTask {
         def version = getProject().getVersion().toString()
         def f = new File('warp-packer')
         if (!f.exists()) {
-            new URL('https://github.com/dgiagio/warp/releases/download/v0.3.0/linux-x64.warp-packer').withInputStream{ i -> f.withOutputStream{ it << i }}
+            new URL('https://github.com/dgiagio/warp/releases/download/v0.3.0/linux-x64.warp-packer').withInputStream { i -> f.withOutputStream { it << i } }
         }
         def command = "warp-packer --arch linux-x64 --input_dir build/image --exec bin/DIM-Modifier --output DIM-Modifier-" + version
         def proc = command.execute()
@@ -95,8 +191,7 @@ versioner {
     }
 }
 
-// Create a task using the task type
-tasks.register('buildImageWin', WindowsBuildImageTask).configure{
+tasks.register('buildImageWin', WindowsBuildImageTask).configure {
     dependsOn(provider {
         tasks.findByName("jlink")
     })
@@ -108,7 +203,7 @@ tasks.withType(JavaExec) {
     }
 }
 
-tasks.register('buildImageLinux', LinuxBuildImageTask).configure{
+tasks.register('buildImageLinux', LinuxBuildImageTask).configure {
     dependsOn(provider {
         tasks.findByName("jlink")
     })
@@ -116,4 +211,23 @@ tasks.register('buildImageLinux', LinuxBuildImageTask).configure{
 
 test {
     useJUnitPlatform()
+}
+
+tasks.named('jlink') {
+    doLast {
+        if (project.hasProperty('targetPlatform') && project.targetPlatform == 'windows') {
+            println "Manual DLL extraction for Windows..."
+            def graphicsJar = configurations.runtimeClasspath.find { it.name.contains('javafx-graphics') && it.name.contains('win') }
+            if (graphicsJar) {
+                 copy {
+                     from zipTree(graphicsJar)
+                     into "build/image/DIM-Modifier-windows-x64/bin"
+                     include "*.dll"
+                 }
+                 println "Extracted DLLs from ${graphicsJar.name}"
+            } else {
+                println "WARNING: Could not find javafx-graphics-win jar to extract DLLs."
+            }
+        }
+    }
 }

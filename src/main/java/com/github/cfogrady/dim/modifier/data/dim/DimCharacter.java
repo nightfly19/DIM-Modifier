@@ -15,11 +15,11 @@ import java.util.UUID;
 @SuperBuilder(toBuilder = true)
 @EqualsAndHashCode(callSuper = true)
 public class DimCharacter extends Character<DimTransformationEntity, DimCharacter> {
-    public static final SpriteData.SpriteDimensions ALLOWED_ADULT_DIMENSIONS =
-            SpriteData.SpriteDimensions.builder().width(64).height(56).build();
+    public static final SpriteData.SpriteDimensions ALLOWED_ADULT_DIMENSIONS = SpriteData.SpriteDimensions.builder()
+            .width(64).height(56).build();
 
-    public static final SpriteData.SpriteDimensions ALLOWED_BABY_DIMENSIONS =
-            SpriteData.SpriteDimensions.builder().width(32).height(24).build();
+    public static final SpriteData.SpriteDimensions ALLOWED_BABY_DIMENSIONS = SpriteData.SpriteDimensions.builder()
+            .width(32).height(24).build();
 
     private Integer hoursUntilFusionCheck;
     private int stars;
@@ -29,12 +29,14 @@ public class DimCharacter extends Character<DimTransformationEntity, DimCharacte
     public DimCharacter copyCharacter(SpriteImageTranslator spriteImageTranslator) {
         List<SpriteData.Sprite> sprites = new ArrayList<>();
         sprites.add(spriteImageTranslator.getBlankNameSprite());
-        if(getStage() < 2) {
-            sprites.addAll(spriteImageTranslator.createDummySprites(5, spriteImageTranslator.getBlankBabyCharacterSprite()));
+        if (getStage() < 2) {
+            sprites.addAll(
+                    spriteImageTranslator.createDummySprites(5, spriteImageTranslator.getBlankBabyCharacterSprite()));
         } else {
-            sprites.addAll(spriteImageTranslator.createDummySprites(12, spriteImageTranslator.getBlankCharacterSprite()));
+            sprites.addAll(
+                    spriteImageTranslator.createDummySprites(12, spriteImageTranslator.getBlankCharacterSprite()));
         }
-        if(getStage() > 0) {
+        if (getStage() > 0) {
             sprites.add(spriteImageTranslator.getBlankBackgroundSprite());
         }
         return this.toBuilder()
@@ -47,7 +49,7 @@ public class DimCharacter extends Character<DimTransformationEntity, DimCharacte
 
     @Override
     public boolean isSpriteSizeValid(SpriteData.SpriteDimensions spriteDimensions) {
-        if(getStage() < 2) {
+        if (getStage() < 2) {
             return spriteDimensions.equals(ALLOWED_BABY_DIMENSIONS);
         } else {
             return spriteDimensions.equals(ALLOWED_ADULT_DIMENSIONS);
@@ -56,7 +58,7 @@ public class DimCharacter extends Character<DimTransformationEntity, DimCharacte
 
     @Override
     public List<SpriteData.SpriteDimensions> getValidDimensions() {
-        if(getStage() < 2) {
+        if (getStage() < 2) {
             return List.of(ALLOWED_BABY_DIMENSIONS);
         } else {
             return List.of(ALLOWED_ADULT_DIMENSIONS);
@@ -64,21 +66,23 @@ public class DimCharacter extends Character<DimTransformationEntity, DimCharacte
     }
 
     public void handleSpriteChange(int oldValue, int newValue, SpriteImageTranslator spriteImageTranslator) {
-        if(oldValue < 2 && newValue < 2) {
-            if(newValue == 0) {
-                getSprites().remove(getSprites().size()-1);
+        if (oldValue < 2 && newValue < 2) {
+            if (newValue == 0) {
+                getSprites().remove(getSprites().size() - 1);
             } else {
                 getSprites().add(spriteImageTranslator.getBlankBackgroundSprite());
             }
         } else {
             List<SpriteData.Sprite> newSprites = new ArrayList<>();
             newSprites.add(getSprites().get(0));
-            if(newValue < 2) {
-                newSprites.addAll(spriteImageTranslator.createDummySprites(5, spriteImageTranslator.getBlankBabyCharacterSprite()));
+            if (newValue < 2) {
+                newSprites.addAll(spriteImageTranslator.createDummySprites(5,
+                        spriteImageTranslator.getBlankBabyCharacterSprite()));
             } else {
-                newSprites.addAll(spriteImageTranslator.createDummySprites(12, spriteImageTranslator.getBlankCharacterSprite()));
+                newSprites.addAll(
+                        spriteImageTranslator.createDummySprites(12, spriteImageTranslator.getBlankCharacterSprite()));
             }
-            if(newValue > 0) {
+            if (newValue > 0) {
                 newSprites.add(spriteImageTranslator.getBlankBackgroundSprite());
             }
             setSprites(newSprites);

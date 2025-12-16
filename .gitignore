@@ -2,11 +2,28 @@
 .idea/
 build/
 .gradle/
+bin/
+.vscode/
 
 DIM-Modifier*.exe
 
 warp-packer.exe
-
+warp-packer
 rcedit-x64.exe
+resource_hacker/
 
 Controls.jar
+
+*.log
+build_log.txt
+trace.log
+
+# Test Data and Assets
+Dragon Arms/
+Fallen_Angel-unsigned/
+NoblePrideSigned/
+VB_Alphabet*
+godzilla*
+hexmon.png
+common_firmware/
+empty_project/
