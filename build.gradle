@@ -65,9 +65,9 @@ abstract class WindowsBuildImageTask extends DefaultTask {
 //        command = "rcedit-x64.exe DIM-Modifier-" + version + ".exe --set-icon icon.ico"
 //        proc = command.execute()
 //        proc.waitForProcessOutput(System.out, System.err)
-        command = "\"C:\\Program Files (x86)\\Resource Hacker\\ResourceHacker.exe\"  -open DIM-Modifier-" + version + ".exe -save DIM-Modifier-" + version + ".exe -action addskip -res icon.ico -mask ICONGROUP,MAINICON"
-        proc = command.execute()
-        proc.waitForProcessOutput(System.out, System.err)
+        // command = "\"C:\\Program Files (x86)\\Resource Hacker\\ResourceHacker.exe\"  -open DIM-Modifier-" + version + ".exe -save DIM-Modifier-" + version + ".exe -action addskip -res icon.ico -mask ICONGROUP,MAINICON"
+        // proc = command.execute()
+        // proc.waitForProcessOutput(System.out, System.err)
 
     }
 }
