@@ -53,7 +53,7 @@ abstract class WindowsBuildImageTask extends DefaultTask {
         if (!f.exists()) {
             new URL('https://github.com/dgiagio/warp/releases/download/v0.3.0/windows-x64.warp-packer.exe').withInputStream{ i -> f.withOutputStream{ it << i }}
         }
-        def command = "warp-packer.exe --arch windows-x64 --input_dir build\\image --exec bin\\DIM-Modifier.bat --output DIM-Modifier-" + version + ".exe"
+        def command = "warp-packer.exe --arch windows-x64 --input_dir build\\image --exec bin\\DIM-Modifier.bat --output DIM-Modifier.exe"
         def proc = command.execute()
         proc.waitForProcessOutput(System.out, System.err)
         //This is broken in rcedit :(
