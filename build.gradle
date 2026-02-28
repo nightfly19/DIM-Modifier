@@ -1,6 +1,8 @@
+import org.gradle.internal.os.OperatingSystem
 
 plugins {
     id "io.toolebox.git-versioner" version "1.6.5"
+    id "org.javamodularity.moduleplugin" version '1.8.10'
     id 'org.openjfx.javafxplugin' version '0.0.10'
     id 'org.beryx.jlink' version '2.24.1'
     id 'application'
