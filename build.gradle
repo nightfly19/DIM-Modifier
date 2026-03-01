@@ -19,9 +19,6 @@ repositories {
 javafx {
     version = "17"
     modules = [ 'javafx.controls', 'javafx.fxml', 'javafx.swing' ]
-    if (OperatingSystem.current().isMacOsX()) {
-        platform = "mac-aarch64"
-    }
 }
 
 dependencies {

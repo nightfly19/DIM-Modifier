@@ -25,6 +25,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: check
+        run: uname -m
+
       - name: Build
         run: ./gradlew jpackage
 
