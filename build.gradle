@@ -112,6 +112,18 @@ tasks.register('buildImageLinux', LinuxBuildImageTask).configure{
     })
 }
 
+jlink {
+    launcher {
+        name = 'DIM-Modifier'
+    }
+
+    if (OperatingSystem.current().isMacOsX()) {
+        jpackage {
+            installerType = 'app-image'
+        }
+    }
+}
+
 test {
     useJUnitPlatform()
 }
