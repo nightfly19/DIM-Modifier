@@ -127,7 +127,7 @@ jlink {
 
     if (OperatingSystem.current().isMacOsX()) {
         jpackage {
-            installerType = 'app-image'
+            installerType = 'dmg'
         }
     }
 }
