@@ -13,6 +13,7 @@ group 'com.github.cfogrady'
 repositories {
     mavenLocal()
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 javafx {
@@ -27,7 +28,7 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok:1.18.22'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
 
-    implementation 'com.github.cfogrady:vb-dim-reader:2.0.2'
+    implementation 'com.github.nightfly19:vb-dim-reader:2.0.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 
