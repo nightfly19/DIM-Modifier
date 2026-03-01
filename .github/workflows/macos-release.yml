@@ -28,14 +28,11 @@ jobs:
       - name: Build
         run: ./gradlew jpackage
 
-      - name: check
-        run: ls
-
-      # - name: Upload artifact DIM-Modifier.exe
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: DIM-Modifier.exe
-      #     path: DIM-Modifier.exe
+      - name: Upload build dir
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: build
 
       # - name: Upload binary to GitHub Release
       #   uses: softprops/action-gh-release@v2
