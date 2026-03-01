@@ -88,8 +88,15 @@ abstract class LinuxBuildImageTask extends DefaultTask {
 }
 
 versioner {
-    pattern {
-        pattern = "%M.%m.%p(.%c-%h)"
+    if (OperatingSystem.current().isMacOsX()) {
+        pattern {
+            pattern = "%M.%m.%p"
+        }
+    }
+    else {
+        pattern {
+            pattern = "%M.%m.%p(.%c-%h)"
+        }
     }
 }
 
