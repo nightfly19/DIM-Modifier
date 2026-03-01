@@ -1,0 +1,40 @@
+name: Windows Release Build
+
+on:
+  push:
+    tags:
+      - "*"   # runs only when a tag is pushed
+    branches:
+      - "buildtest"
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: macos-latest
+
+    steps:
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '17.0.17'
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Build
+        run: ./gradlew jar
+
+      # - name: Upload artifact DIM-Modifier.exe
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: DIM-Modifier.exe
+      #     path: DIM-Modifier.exe
+
+      # - name: Upload binary to GitHub Release
+      #   uses: softprops/action-gh-release@v2
+      #   with:
+      #     files: target/release/*.exe
