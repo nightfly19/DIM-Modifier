@@ -15,8 +15,6 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
 
       - name: Setup Java
         uses: actions/setup-java@v5
@@ -24,13 +22,13 @@ jobs:
           distribution: 'temurin'
           java-version: '17.0.17'
 
-      # - name: Setup Gradle
-      #   uses: gradle/actions/setup-gradle@v5
+      - name: Checkout repository
+        uses: actions/checkout@v6
 
-      - name: Build with gradle
-        run: ./gradlew.bat buildImageWin
+      - name: Build
+        run: ./gradlew buildImageWin
 
-      - name: Upload artifacts
+      - name: Upload artifact DIM-Modifier.exe
         uses: actions/upload-artifact@v4
         with:
           name: DIM-Modifier.exe
